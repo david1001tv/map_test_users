@@ -1,9 +1,9 @@
 {
-  "name": "map-driver-eta",
-  "version": "1.0.0",
+  "name": "map-view-all-users",
+  "version": "1.0.1",
   "private": true,
   "scripts": {
-    "debug": "set NODE_ENV=debug && nodemon ./main.js localhost 3000"
+    "debug": "set NODE_ENV=debug && nodemon ./app.js localhost 3000"
   },
   "dependencies": {
     "body-parser": "^1.17.2",
