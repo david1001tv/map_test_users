@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "debug": "set NODE_ENV=debug && nodemon ./main.js localhost 8080"
+    "debug": "set NODE_ENV=debug && nodemon ./main.js localhost 3000"
   },
   "dependencies": {
     "body-parser": "^1.17.2",
