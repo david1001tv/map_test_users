@@ -11,7 +11,7 @@ You will eed to [sign up](https://www.mapbox.com/signup/) for a Mapbox developer
 Install dependencies using npm:
 ```console
 npm i
-
+```
 
 Set the Mapbox API key in `/public/javascripts/MapComponent.js`:
 ```console
