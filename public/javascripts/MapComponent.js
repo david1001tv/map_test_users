@@ -5,8 +5,9 @@ window.MapComponent = (function (window, document, api) {
     //variable to store the time of the last selection from the database
     var time = null;
 
-    //current users id
-    var userId = null;
+    //arrays for saving event listeners
+    var enterListeners = {};
+    var leaveListeners = {};
     
     var map = new mapboxgl.Map({
         container: 'map',
@@ -40,15 +41,15 @@ window.MapComponent = (function (window, document, api) {
     map.on('mousedown', mouseDown);
     map.on('mouseup', mouseUp);
 
-    function mouseEnter() {
-        map.setPaintProperty('id=' + userId, 'circle-color', '#FF00BF');
+    const mouseEnter = function (user) {
+        map.setPaintProperty('id=' + user.id, 'circle-color', '#FF00BF');
         canvas.style.cursor = 'pointer';
         isCursorOverPoint = true;
         map.dragPan.disable();
     }
 
-    function mouseLeave() {
-        map.setPaintProperty('id=' + userId, 'circle-color', '#352384');
+    const mouseLeave = function (user) {
+        map.setPaintProperty('id=' + user.id, 'circle-color', '#352384');
         canvas.style.cursor = 'default';
         isCursorOverPoint = false;
         map.dragPan.enable();
@@ -97,16 +98,19 @@ window.MapComponent = (function (window, document, api) {
     const removePoint = function (user) {
         map.removeSource('id=' + user.id);
         map.removeLayer('id=' + user.id);
-        map.off('mouseenter', 'id=' + user.id, mouseEnter);
-        map.off('mouseleave', 'id=' + user.id, mouseLeave);
+        map.off('mouseenter', 'id=' + user.id, enterListeners[user.id]);
+        map.off('mouseleave', 'id=' + user.id, leaveListeners[user.id]);
+        delete enterListeners[user.id];
+        delete leaveListeners[user.id];
     }
 
     const setEvents = function (user) {
-        //set current users id
-        userId = user.id;
+        //save event listeners
+        enterListeners[user.id] = mouseEnter.bind(this, user);
+        leaveListeners[user.id] = mouseLeave.bind(this, user);
         // When the cursor enters a feature in the point layer.
-        map.on('mouseenter', 'id=' + user.id, mouseEnter);
-        map.on('mouseleave', 'id=' + user.id, mouseLeave);
+        map.on('mouseenter', 'id=' + user.id, enterListeners[user.id]);
+        map.on('mouseleave', 'id=' + user.id, leaveListeners[user.id]);
     }
 
     map.on('load', function() {
