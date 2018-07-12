@@ -1,15 +1,13 @@
 window.MapComponent = (function (window, document, api) {
 
-    mapboxgl.accessToken = "pk.eyJ1IjoiZGF2aWR5dWhubyIsImEiOiJjampneHdjNG4wODRyM3FybHN0dTF6aXRrIn0.620vyF08CNZESI4i3nBPuA";
-    // Holds mousedown state for events. if this
-    // flag is active, we move the point on `mousemove`.
-    var isDragging;
+    mapboxgl.accessToken = 'pk.eyJ1IjoiZGF2aWR5dWhubyIsImEiOiJjampneHdjNG4wODRyM3FybHN0dTF6aXRrIn0.620vyF08CNZESI4i3nBPuA';
 
-    // Is the cursor over a point? if this
-    // flag is active, we listen for a mousedown event.
-    var isCursorOverPoint;
+    //variable to store the time of the last selection from the database
+    var time = null;
 
-    var coordinates = document.getElementById('coordinates');
+    //current users id
+    var userId = null;
+    
     var map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/basic-v9',
@@ -18,105 +16,112 @@ window.MapComponent = (function (window, document, api) {
     });
 
     var canvas = map.getCanvasContainer();
+    canvas.style.cursor = 'default';
 
     var geojson = {
-        "type": "FeatureCollection",
-        "features": [{
-            "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": [-95.278097, 29.309956]
+        'type': 'FeatureCollection',
+        'features': [{
+            'type': 'Feature',
+            'geometry': {
+                'type': 'Point',
+                'coordinates': [-95.278097, 29.309956]
             }
         }]
     };
 
-    /*function mouseDown() {
-        if (!isCursorOverPoint) return;
-
-        isDragging = true;
-
-        // Set a cursor indicator
-        canvas.style.cursor = 'grab';
-
-        // Mouse events
-        map.on('mousemove', onMove);
-        map.once('mouseup', onUp);
+    function mouseDown() {
+        canvas.style.cursor = '';
     }
 
-    function onMove(e) {
-        if (!isDragging) return;
-        var coords = e.lngLat;
-
-        // Set a UI indicator for dragging.
-        canvas.style.cursor = 'grabbing';
-
-        // Update the Point feature in `geojson` coordinates
-        // and call setData to the source layer `point` on it.
-        geojson.features[0].geometry.coordinates = [coords.lng, coords.lat];
-        map.getSource('point1').setData(geojson);
+    function mouseUp() {
+        canvas.style.cursor = 'default';
     }
 
-    function onUp(e) {
-        if (!isDragging) return;
-        var coords = e.lngLat;
+    map.on('mousedown', mouseDown);
+    map.on('mouseup', mouseUp);
 
-        // Print the coordinates of where the point had
-        // finished being dragged to on the map.
-        coordinates.style.display = 'block';
-        coordinates.appendChild(document.createTextNode('Longitude: ' + coords.lng));
-        coordinates.appendChild(document.createElement('br'));
-        coordinates.appendChild(document.createTextNode('Latitude: ' + coords.lat));
-        coordinates.appendChild(document.createElement('br'));
-        coordinates.appendChild(document.createElement('hr'));
+    function mouseEnter() {
+        map.setPaintProperty('id=' + userId, 'circle-color', '#FF00BF');
+        canvas.style.cursor = 'pointer';
+        isCursorOverPoint = true;
+        map.dragPan.disable();
+    }
 
-        // Call the Lyft SDK to retrieve driver ETA at this location 
-        api.getApiLyftEta(coords.lat, coords.lng, function(res){
-            for (var k in res.eta_estimates) {
-                var eta = res.eta_estimates[k];
-                coordinates.appendChild(document.createTextNode(eta.display_name + ': ' + eta.eta_seconds + ' sec'));
-                coordinates.appendChild(document.createElement('br'));
-            }
+    function mouseLeave() {
+        map.setPaintProperty('id=' + userId, 'circle-color', '#352384');
+        canvas.style.cursor = 'default';
+        isCursorOverPoint = false;
+        map.dragPan.enable();
+    }
+
+    const getDataFromDB = async (data) => {
+        const res = await fetch(data.url, {
+            method: 'post',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify( { time: time } ),
+        });
+        const json = await res.json();
+        return json;
+    }
+
+    const addPoint = function (user, next) {
+        //set coordinates of current user
+        geojson.features[0].geometry.coordinates[0] = user.coordLongitude;
+        geojson.features[0].geometry.coordinates[1] = user.coordLatitude;
+
+        //add source for current user
+        map.addSource('id=' + user.id, {
+            'type': 'geojson',
+            'data': geojson
         });
 
-        canvas.style.cursor = '';
-        isDragging = false;
+        //add point for current user on map
+        map.addLayer({
+            'id': 'id=' + user.id,
+            'type': 'circle',
+            'source': 'id=' + user.id,
+            'paint': {
+                'circle-radius': 5,
+                'circle-color': '#352384',
+                'circle-stroke-width': 1,
+                'circle-stroke-color': '#fff'
+            }
+        });
+        
+        next(user);
+    }
 
-        // Unbind mouse events
-        map.off('mousemove', onMove);
-    }*/
+    const removePoint = function (user) {
+        map.removeSource('id=' + user.id);
+        map.removeLayer('id=' + user.id);
+        map.off('mouseenter', 'id=' + user.id, mouseEnter);
+        map.off('mouseleave', 'id=' + user.id, mouseLeave);
+    }
+
+    const setEvents = function (user) {
+        //set current users id
+        userId = user.id;
+        // When the cursor enters a feature in the point layer.
+        map.on('mouseenter', 'id=' + user.id, mouseEnter);
+        map.on('mouseleave', 'id=' + user.id, mouseLeave);
+    }
 
     map.on('load', function() {
-        //const io = require('socket.io');
         const socket = io.connect('http://localhost:3000');
+
+        //socket for connection with server
 	    socket.on('connection_custom', function (data) {
             fetch(data.url, {
-                method: 'get'
+                method: 'get',
             }).then(function(res) {
                 res.json().then(function(data){
-                    console.log(data);
+                    time = data.time;
                     if(data.success === true){
-                        console.log(data.users);
                         data.users.forEach(e => {
-                            console.log(e.id);
-                            geojson.features[0].geometry.coordinates[0] = e.coordLongitude;
-                            geojson.features[0].geometry.coordinates[1] = e.coordLatitude;
-                            // Add a single point to the map
-                            map.addSource("id=" + e.id, {
-                                "type": "geojson",
-                                "data": geojson
-                            });
-
-                            map.addLayer({
-                                "id": "id=" + e.id,
-                                "type": "circle",
-                                "source": "id=" + e.id,
-                                "paint": {
-                                    "circle-radius": 5,
-                                    "circle-color": "#352384",
-                                    "circle-stroke-width": 1,
-                                    "circle-stroke-color": "#fff"
-                                }
-                            });
+                            addPoint(e, setEvents);
                         })
                     }
                 })
@@ -125,21 +130,32 @@ window.MapComponent = (function (window, document, api) {
             });
         });
 
-        // When the cursor enters a feature in the point layer, prepare for dragging.
-        /*map.on('mouseenter', 'point1', function() {
-            map.setPaintProperty('point1', 'circle-color', '#FF00BF');
-            canvas.style.cursor = 'move';
-            isCursorOverPoint = true;
-            map.dragPan.disable();
-        });
+        //socket for getting new data (that was added to database)
+        socket.on('get_new_data', async (data) => {
+            let dataFromDB = await getDataFromDB(data);
+            time = dataFromDB.time;
+            if(dataFromDB.success === true) {
+                dataFromDB.users.forEach(e => {
+                    addPoint(e, setEvents);
+                })
+            }
+        })
 
-        map.on('mouseleave', 'point1', function() {
-            map.setPaintProperty('point1', 'circle-color', '#352384');
-            canvas.style.cursor = '';
-            isCursorOverPoint = false;
-            map.dragPan.enable();
-        });
+        //socket for getting chages in database
+        socket.on('get_updated_data', async (data) => {
+            let dataFromDB = await getDataFromDB(data);
+            time = dataFromDB.time;
+            if(dataFromDB.success ===true) {
+                dataFromDB.users.forEach(e => {
+                    removePoint(e);
+                    addPoint(e, setEvents);
+                })
+            }
+        })
 
-        map.on('mousedown', mouseDown);*/
+        //socket for getting data adput deleted users
+        socket.on('get_deleted_data', function (data) {
+            removePoint(data);
+        })
     });
 })(window, window.document, window.ApiComponent);

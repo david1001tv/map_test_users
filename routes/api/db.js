@@ -8,16 +8,18 @@ const {
 } = require('../../controllers/IDU');
 
 const {
-    selectRow,
+    selectAll,
+    selectNew,
 } = require('../../controllers/select')
 
 /*
- /api/db/
+ /api
  */
 
 router.post('/insert', insertRow);
 router.post('/delete', deleteRow);
 router.post('/update', updateRow);
-router.get('/select', selectRow);
+router.get('/select/all', selectAll);
+router.post('/select/new', selectNew);
 
 module.exports = router;

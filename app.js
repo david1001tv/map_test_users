@@ -63,5 +63,5 @@ module.exports.objSockets = function(){
 
 socket.sockets.on('connection', function (_socket) {
     console.log('connected');
-    socket.sockets.emit('connection_custom', { url: 'http://localhost:3000/api/select' });
+    _socket.emit('connection_custom', { url: 'http://localhost:3000/api/select/all' });
 });

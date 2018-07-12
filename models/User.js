@@ -21,11 +21,11 @@ module.exports = (sequelize) => {
             allowNull: false,
         },
         coordLongitude: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.DOUBLE,
             allowNull: false,
         },
         coordLatitude: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.DOUBLE,
             allowNull: false,
         }
     }, {

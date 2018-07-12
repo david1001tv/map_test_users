@@ -18,7 +18,7 @@ module.exports = {
                 });
             }));
 
-            objSockets.objSockets().emit('connection_custom', { url: 'http://localhost:3000/api/select' });
+            objSockets.objSockets().emit('get_new_data', { url: 'http://localhost:3000/api/select/new' });
 
             res.status(200).json({
                 success: true,
@@ -40,7 +40,7 @@ module.exports = {
                 coordLatitude: body.coordLatitude,
             }));
 
-            objSockets.objSockets().emit('connection_custom', { url: 'http://localhost:3000/api/select' });
+            objSockets.objSockets().emit('get_updated_data', { url: 'http://localhost:3000/api/select/new' });
 
             res.status(200).json({
                 success: true,
@@ -56,7 +56,7 @@ module.exports = {
             const user = (await User.findOne({ where: { id: body.id } }));
             (await user.destroy());
 
-            objSockets.objSockets().emit('connection_custom', { url: 'http://localhost:3000/api/select' });
+            objSockets.objSockets().emit('get_deleted_data', { id: body.id });
 
             res.status(200).json({
                 success: true,
