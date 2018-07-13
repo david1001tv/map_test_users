@@ -32,19 +32,25 @@ module.exports = {
         const { body } = req;
         try {
             const user = (await User.findOne({ where: { id: body.id } }));
-            (await user.update({
-                name: body.name,
-                surname: body.surname,
-                email: body.email,
-                coordLongitude: body.coordLongitude,
-                coordLatitude: body.coordLatitude,
-            }));
-
-            objSockets.objSockets().emit('get_updated_data', { url: 'http://localhost:3000/api/select/new' });
-
-            res.status(200).json({
-                success: true,
-            });
+            if(user !== null) {
+                (await user.update({
+                    name: body.name,
+                    surname: body.surname,
+                    email: body.email,
+                    coordLongitude: body.coordLongitude,
+                    coordLatitude: body.coordLatitude,
+                }));
+    
+                objSockets.objSockets().emit('get_updated_data', { url: 'http://localhost:3000/api/select/new' });
+    
+                res.status(200).json({
+                    success: true,
+                });
+            } else {
+                res.status(401).json({
+                    success: false,
+                });
+            }
         } catch (error) {
             console.error(error);
             res.status(500).send();
@@ -54,13 +60,19 @@ module.exports = {
         const { body } = req;
         try {
             const user = (await User.findOne({ where: { id: body.id } }));
-            (await user.destroy());
+            if(user !== null) {
+                (await user.destroy());
 
-            objSockets.objSockets().emit('get_deleted_data', { id: body.id });
+                objSockets.objSockets().emit('get_deleted_data', { id: body.id });
 
-            res.status(200).json({
-                success: true,
-            });
+                res.status(200).json({
+                    success: true,
+                });
+            } else {
+                res.status(401).json({
+                    success: false,
+                });
+            }
         } catch (error) {
             console.error(error);
             res.status(500).send();
