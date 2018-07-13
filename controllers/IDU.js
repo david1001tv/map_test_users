@@ -32,7 +32,7 @@ module.exports = {
         const { body } = req;
         try {
             const user = (await User.findOne({ where: { id: body.id } }));
-            if(user !== null) {
+            if (user !== null) {
                 (await user.update({
                     name: body.name,
                     surname: body.surname,
@@ -40,9 +40,9 @@ module.exports = {
                     coordLongitude: body.coordLongitude,
                     coordLatitude: body.coordLatitude,
                 }));
-    
+
                 objSockets.objSockets().emit('get_updated_data', { url: 'http://localhost:3000/api/select/new' });
-    
+
                 res.status(200).json({
                     success: true,
                 });
@@ -60,7 +60,7 @@ module.exports = {
         const { body } = req;
         try {
             const user = (await User.findOne({ where: { id: body.id } }));
-            if(user !== null) {
+            if (user !== null) {
                 (await user.destroy());
 
                 objSockets.objSockets().emit('get_deleted_data', { id: body.id });

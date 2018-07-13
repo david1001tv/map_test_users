@@ -8,7 +8,7 @@ window.MapComponent = (function (window, document, api) {
     //arrays for saving event listeners
     var enterListeners = {};
     var leaveListeners = {};
-    
+
     var map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/basic-v9',
@@ -62,7 +62,7 @@ window.MapComponent = (function (window, document, api) {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify( { time: time } ),
+            body: JSON.stringify({ time: time }),
         });
         const json = await res.json();
         return json;
@@ -91,7 +91,7 @@ window.MapComponent = (function (window, document, api) {
                 'circle-stroke-color': '#fff'
             }
         });
-        
+
         next(user);
     }
 
@@ -113,23 +113,23 @@ window.MapComponent = (function (window, document, api) {
         map.on('mouseleave', 'id=' + user.id, leaveListeners[user.id]);
     }
 
-    map.on('load', function() {
+    map.on('load', function () {
         const socket = io.connect('http://localhost:3000');
 
         //socket for connection with server
-	    socket.on('connection_custom', function (data) {
+        socket.on('connection_custom', function (data) {
             fetch(data.url, {
                 method: 'get',
-            }).then(function(res) {
-                res.json().then(function(data){
+            }).then(function (res) {
+                res.json().then(function (data) {
                     time = data.time;
-                    if(data.success === true){
+                    if (data.success === true) {
                         data.users.forEach(e => {
                             addPoint(e, setEvents);
                         })
                     }
                 })
-            }).catch(function(err) {
+            }).catch(function (err) {
                 console.log(err);
             });
         });
@@ -138,7 +138,7 @@ window.MapComponent = (function (window, document, api) {
         socket.on('get_new_data', async (data) => {
             let dataFromDB = await getDataFromDB(data);
             time = dataFromDB.time;
-            if(dataFromDB.success === true) {
+            if (dataFromDB.success === true) {
                 dataFromDB.users.forEach(e => {
                     addPoint(e, setEvents);
                 })
@@ -149,7 +149,7 @@ window.MapComponent = (function (window, document, api) {
         socket.on('get_updated_data', async (data) => {
             let dataFromDB = await getDataFromDB(data);
             time = dataFromDB.time;
-            if(dataFromDB.success ===true) {
+            if (dataFromDB.success === true) {
                 dataFromDB.users.forEach(e => {
                     removePoint(e);
                     addPoint(e, setEvents);

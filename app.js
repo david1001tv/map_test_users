@@ -32,7 +32,7 @@ app.enable('trust proxy');
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-app.use(favicon(path.join(__dirname,'public','images','favicon.ico')));
+app.use(favicon(path.join(__dirname, 'public', 'images', 'favicon.ico')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 /**
@@ -57,11 +57,11 @@ const server = app.listen(app.get('port'), () => {
  */
 const io = require('socket.io');
 const socket = io.listen(server);
-module.exports.objSockets = function(){
-    return socket.sockets;
+module.exports.objSockets = function () {
+  return socket.sockets;
 }
 
 socket.sockets.on('connection', function (_socket) {
-    console.log('connected');
-    _socket.emit('connection_custom', { url: 'http://localhost:3000/api/select/all' });
+  console.log('connected');
+  _socket.emit('connection_custom', { url: 'http://localhost:3000/api/select/all' });
 });
