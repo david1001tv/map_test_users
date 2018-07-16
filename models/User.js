@@ -20,6 +20,10 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: false,
         },
+        imageUrl: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
         coordLongitude: {
             type: DataTypes.DOUBLE,
             allowNull: false,

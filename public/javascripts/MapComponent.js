@@ -4,7 +4,8 @@ window.MapComponent = (function (window, document, api) {
     mapboxgl.accessToken = 'pk.eyJ1IjoiZGF2aWR5dWhubyIsImEiOiJjampneHdjNG4wODRyM3FybHN0dTF6aXRrIn0.620vyF08CNZESI4i3nBPuA';
 
     //variable to store the time of the last selection from the database
-    var time = null;
+    const date = new Date();
+    var time = date.today() + ' ' + date.timeNow();
 
     //arrays for saving event listeners
     var enterListeners = {};
@@ -61,7 +62,7 @@ window.MapComponent = (function (window, document, api) {
         popUp.setLngLat([user.coordLongitude, user.coordLatitude])
             .setHTML(`<table>
             <tr>
-                <td rowspan=3><img style="width: 55px; padding-right: 10px;" src="../images/favicon.ico"></td>
+                <td rowspan=3><img style="width: 55px; padding-right: 10px;" src="${user.imageUrl}"></td>
                 <td><b>${user.name}</b></td>
             </tr>
             <tr>

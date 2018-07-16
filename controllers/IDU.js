@@ -15,6 +15,7 @@ module.exports = {
                     email: body.email,
                     coordLongitude: body.coordLongitude,
                     coordLatitude: body.coordLatitude,
+                    imageUrl: body.imageUrl,
                 });
             }));
 
